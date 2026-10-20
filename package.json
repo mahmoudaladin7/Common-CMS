@@ -1,0 +1,58 @@
+{
+  "name": "common-cms",
+  "version": "1.0.0",
+  "private": true,
+  "description": "A bilingual, reusable website CMS starter built with Payload, Next.js and TypeScript.",
+  "type": "module",
+  "license": "MIT",
+  "engines": {
+    "node": ">=22.13.0"
+  },
+  "scripts": {
+    "format": "prettier --write .",
+    "format:check": "prettier --check .",
+    "setup": "node scripts/setup.mjs",
+    "dev": "next dev --hostname 127.0.0.1",
+    "build": "next build",
+    "start": "next start --hostname 0.0.0.0",
+    "typecheck": "tsc --noEmit",
+    "generate": "payload generate:types && payload generate:importmap",
+    "payload": "payload",
+    "db:migrate": "payload migrate",
+    "db:create-migration": "payload migrate:create",
+    "seed": "payload run scripts/seed.ts",
+    "test": "node --import tsx --test tests/*.test.ts",
+    "test:integration": "node scripts/integration.mjs",
+    "check": "npm run typecheck && npm test"
+  },
+  "dependencies": {
+    "@payloadcms/db-sqlite": "3.91.0",
+    "@payloadcms/email-nodemailer": "3.91.0",
+    "@payloadcms/next": "3.91.0",
+    "@payloadcms/richtext-lexical": "3.91.0",
+    "@payloadcms/translations": "3.91.0",
+    "@payloadcms/ui": "3.91.0",
+    "graphql": "16.11.0",
+    "next": "16.4.2",
+    "payload": "3.91.0",
+    "react": "19.3.1",
+    "react-dom": "19.3.1",
+    "sharp": "0.35.5"
+  },
+  "devDependencies": {
+    "@types/node": "^22.15.0",
+    "@types/react": "^19.0.0",
+    "@types/react-dom": "^19.0.0",
+    "prettier": "3.9.10",
+    "sass": "1.105.2",
+    "tsx": "^4.20.0",
+    "typescript": "^5.8.0"
+  },
+  "overrides": {
+    "sass": "$sass",
+    "dompurify": "3.4.17",
+    "@esbuild-kit/core-utils": {
+      "esbuild": "0.25.12"
+    }
+  }
+}

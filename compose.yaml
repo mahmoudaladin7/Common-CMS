@@ -1,0 +1,16 @@
+services:
+  cms:
+    build: .
+    ports:
+      - '127.0.0.1:3000:3000'
+    env_file: .env
+    environment:
+      NODE_ENV: production
+      DATABASE_URL: file:/data/cms.db
+      MEDIA_DIR: /data/media
+    volumes:
+      - cms-data:/data
+    restart: unless-stopped
+
+volumes:
+  cms-data:

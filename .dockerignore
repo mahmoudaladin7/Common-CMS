@@ -1,0 +1,11 @@
+node_modules
+.next
+.git
+.env*
+*.db*
+*.sqlite*
+media
+coverage
+*.tsbuildinfo
+*.log
+test-results
