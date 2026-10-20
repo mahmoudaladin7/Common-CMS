@@ -33,9 +33,16 @@ Then open **http://localhost:3000/en** or **http://localhost:3000/ar**. Seed con
 uses fictional example copy and `example.com` addresses. It never creates users
 and skips entries with existing starter slugs. Change example links before launch.
 
-> `npm run setup` creates `.env` with a random secret and preserves an existing
-> file. The database and uploaded files live on disk. Nothing is stored only in
-> browser memory.
+> `npm run dev` also runs setup automatically, creating a missing `.env` with a
+> unique random secret. Existing configuration is preserved. The database and
+> uploaded files live on disk. Nothing is stored only in browser memory.
+
+If `PAYLOAD_SECRET must contain at least 32 characters` appears, stop the server
+and restart with `npm run dev` from this directory. If `.env` already exists,
+check that `PAYLOAD_SECRET` is set to a random value of at least 32 characters;
+setup deliberately does not replace an existing secret. Environment variables
+set by your shell or `.env.local` take precedence over `.env`. Production requires
+its own configured secret; this automatic setup runs only before development.
 
 ## What is included
 
