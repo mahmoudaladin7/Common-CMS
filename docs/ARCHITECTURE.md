@@ -1,3 +1,5 @@
+> Phase 1 adds website ownership, per-website roles and singleton collections in place of globals. The [multi-website guide](multi-website.md) defines the current access and migration contract.
+
 # Architecture
 
 ## Request flow
@@ -20,7 +22,7 @@ src/
   payload.config.ts       CMS composition, database, email, localization
   access/                 Reusable role/access policy
   collections/            Typed content schemas and user policy
-  globals/                Navigation and site settings
+  globals/                Website singleton collection definitions
   fields/                 Shared slug, link and SEO fields
   blocks/                 Composable page-section schemas
   components/admin/       Brand and workspace overview
@@ -56,7 +58,7 @@ visitor happens to have an admin session. Preview mode additionally requires a
 valid CMS session; a preview cookie alone grants no access.
 
 Public read access for versioned content adds `_status = published`. User
-accounts are never publicly readable. Media and global settings are public by
+accounts are never publicly readable. Media and website settings are public by
 design; never put secrets or private documents there.
 
 ## Deliberate boundaries
@@ -64,7 +66,7 @@ design; never put secrets or private documents there.
 - One database and user group per installation; no multi-tenant isolation layer.
 - The bundled website performs fresh server reads, so publishing is immediately
   visible without a webhook/cache-invalidation dependency.
-- Navigation and global settings update immediately and keep revision history.
+- Website navigation and settings update immediately and keep revision history.
   They do not have the page/article draft workflow.
 - Content translations share a publication status. If a client requires approval
   per locale, design and test that workflow explicitly.

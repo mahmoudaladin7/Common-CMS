@@ -1,6 +1,6 @@
 import path from 'node:path'
 import type { CollectionConfig } from 'payload'
-import { adminOnly, editors } from '@/access'
+import { tenantRead, tenantCreate, tenantWrite } from '@/access/tenancy'
 
 export const Media: CollectionConfig = {
   slug: 'media',
@@ -8,7 +8,28 @@ export const Media: CollectionConfig = {
     group: 'Content',
     description: 'Public website assets. Do not upload private documents.',
   },
-  access: { read: () => true, create: editors, update: editors, delete: adminOnly },
+  access: {
+    read: tenantRead(false),
+    create: tenantCreate(),
+    update: tenantWrite(),
+    delete: tenantWrite(['admin']),
+  },
+  hooks: {
+    // Relative delivery URLs keep public assets on their owning website's host.
+    // Absolute SERVER_URL links would send Company B images to the central/A host.
+    afterRead: [
+      ({ doc }) => {
+        const fileURL = (filename: string) => `/api/media/file/${encodeURIComponent(filename)}`
+        if (doc.filename) doc.url = fileURL(doc.filename)
+        for (const size of Object.values(doc.sizes || {})) {
+          const image = size as { filename?: string; url?: string }
+          if (image.filename) image.url = fileURL(image.filename)
+        }
+        if (doc.sizes?.thumbnail?.filename) doc.thumbnailURL = fileURL(doc.sizes.thumbnail.filename)
+        return doc
+      },
+    ],
+  },
   upload: {
     // This directory is a runtime volume, not a build-time asset dependency.
     staticDir: path.resolve(/* turbopackIgnore: true */ process.env.MEDIA_DIR || './media'),

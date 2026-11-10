@@ -1,17 +1,23 @@
-import type { GlobalConfig } from 'payload'
-import { adminOnly, editors } from '@/access'
+import type { CollectionConfig } from 'payload'
+import { tenantRead, tenantCreate, tenantWrite, tenantVersions } from '@/access/tenancy'
 import { linkFields } from '@/fields'
 import { validateHref } from '@/lib/validation'
 
-export const SiteSettings: GlobalConfig = {
+export const SiteSettings: CollectionConfig = {
   slug: 'site-settings',
-  label: 'Site settings',
+  labels: { singular: 'Site settings', plural: 'Site settings' },
   admin: {
     group: 'Workspace',
     description: 'Public website information. Never store secrets or API credentials here.',
   },
-  access: { read: () => true, update: adminOnly },
-  versions: { max: 20 },
+  access: {
+    read: tenantRead(false),
+    create: tenantCreate(['admin']),
+    update: tenantWrite(['admin']),
+    delete: () => false,
+    readVersions: tenantVersions,
+  },
+  versions: { maxPerDoc: 20 },
   fields: [
     { name: 'siteName', type: 'text', required: true, localized: true, defaultValue: 'Common' },
     { name: 'tagline', type: 'textarea', localized: true },
@@ -31,15 +37,21 @@ export const SiteSettings: GlobalConfig = {
   ],
 }
 
-export const Navigation: GlobalConfig = {
+export const Navigation: CollectionConfig = {
   slug: 'navigation',
   admin: {
     group: 'Website',
     description:
       'Menu changes take effect immediately. Page content has a separate draft workflow.',
   },
-  access: { read: () => true, update: editors },
-  versions: { max: 20 },
+  access: {
+    read: tenantRead(false),
+    create: tenantCreate(),
+    update: tenantWrite(),
+    delete: () => false,
+    readVersions: tenantVersions,
+  },
+  versions: { maxPerDoc: 20 },
   fields: [
     { name: 'main', label: 'Main menu', type: 'array', maxRows: 8, fields: linkFields },
     { name: 'footer', label: 'Footer menu', type: 'array', maxRows: 12, fields: linkFields },

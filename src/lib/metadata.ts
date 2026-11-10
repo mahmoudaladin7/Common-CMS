@@ -2,7 +2,7 @@ import type { Metadata } from 'next'
 import type { Media } from '@/payload-types'
 import type { Locale } from '@/cms.config'
 import { cms } from '@/cms.config'
-import { contentPath, getCMS, getReadContext, type ContentSlug } from '@/lib/content'
+import { contentPath, getWebsiteSettings, getReadContext, type ContentSlug } from '@/lib/content'
 
 type MetadataDocument = {
   title: string
@@ -20,20 +20,17 @@ export async function documentMetadata(
   collection: ContentSlug,
   locale: Locale,
 ): Promise<Metadata> {
-  const [payload, context] = await Promise.all([getCMS(), getReadContext(locale)])
-  const settings = await payload.findGlobal({
-    slug: 'site-settings',
-    locale,
-    overrideAccess: false,
-    depth: 1,
-  })
-  const title = doc.seo?.title || `${doc.title} · ${settings.siteName}`
-  const description = doc.seo?.description || settings.defaultDescription || undefined
-  const image = doc.seo?.image || settings.defaultImage
+  const [{ settings }, context] = await Promise.all([
+    getWebsiteSettings(locale),
+    getReadContext(locale),
+  ])
+  const title = doc.seo?.title || `${doc.title} · ${settings?.siteName}`
+  const description = doc.seo?.description || settings?.defaultDescription || undefined
+  const image = doc.seo?.image || settings?.defaultImage
   return {
     title,
     description,
-    metadataBase: new URL(process.env.SERVER_URL || 'http://localhost:3000'),
+    metadataBase: new URL(context.websiteURL),
     alternates: {
       canonical: contentPath(collection, doc.slug, locale),
       languages: Object.fromEntries(

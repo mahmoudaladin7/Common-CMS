@@ -7,6 +7,9 @@ import { en } from '@payloadcms/translations/languages/en'
 import { ar } from '@payloadcms/translations/languages/ar'
 import { buildConfig } from 'payload'
 import sharp from 'sharp'
+import { multiTenantPlugin } from '@payloadcms/plugin-multi-tenant'
+import { Websites } from './collections/Websites'
+import { enforceWebsite, isSuperAdmin } from './access/tenancy'
 import { cms } from './cms.config'
 import { Users } from './collections/Users'
 import { Media } from './collections/Media'
@@ -34,7 +37,8 @@ export default buildConfig({
     meta: { titleSuffix: ` · ${cms.name} CMS` },
     importMap: { baseDir: dirname },
     components: {
-      beforeDashboard: ['/components/admin/Overview#Overview'],
+      beforeNav: ['/components/admin/Brand#SidebarBrand'],
+      views: { dashboard: { Component: '/components/admin/Overview#Overview' } },
       beforeLogin: ['/components/admin/Welcome#Welcome'],
       graphics: {
         Logo: '/components/admin/Brand#Brand',
@@ -43,8 +47,83 @@ export default buildConfig({
     },
   },
   // Feature switches gate access instead of dropping tables or generated types.
-  collections: [Users, Media, Pages, Posts, Services, Projects, Companies, Team],
-  globals: [SiteSettings, Navigation],
+  collections: [
+    Users,
+    Websites,
+    Media,
+    Pages,
+    Posts,
+    Services,
+    Projects,
+    Companies,
+    Team,
+    SiteSettings,
+    Navigation,
+  ].map((collection) => {
+    if (['users', 'websites'].includes(collection.slug)) return collection
+    return {
+      ...collection,
+      indexes: [
+        ...(collection.indexes || []),
+        ...(['site-settings', 'navigation'].includes(collection.slug)
+          ? []
+          : collection.slug === 'media'
+            ? []
+            : [{ fields: ['tenant', 'slug'], unique: true }]),
+      ],
+      hooks: {
+        ...collection.hooks,
+        beforeValidate: [...(collection.hooks?.beforeValidate || []), enforceWebsite],
+      },
+    }
+  }),
+  plugins: [
+    multiTenantPlugin({
+      tenantsSlug: 'websites',
+      userHasAccessToAllTenants: isSuperAdmin,
+      cleanupAfterTenantDelete: false,
+      useTenantsCollectionAccess: false,
+      useUsersTenantFilter: false,
+      tenantsArrayField: {
+        rowFields: [
+          {
+            name: 'role',
+            type: 'select',
+            required: true,
+            saveToJWT: true,
+            defaultValue: 'viewer',
+            options: [
+              { label: 'Website Admin', value: 'admin' },
+              { label: 'Editor', value: 'editor' },
+              { label: 'Viewer', value: 'viewer' },
+            ],
+          },
+        ],
+      },
+      collections: Object.fromEntries(
+        [
+          'media',
+          'pages',
+          'posts',
+          'services',
+          'projects',
+          'companies',
+          'team',
+          'site-settings',
+          'navigation',
+        ].map((slug) => [
+          slug,
+          { useTenantAccess: false, isGlobal: ['site-settings', 'navigation'].includes(slug) },
+        ]),
+      ),
+      i18n: {
+        translations: {
+          en: { 'nav-tenantSelector-label': 'Website' },
+          ar: { 'nav-tenantSelector-label': 'الموقع' },
+        },
+      },
+    }),
+  ],
   editor: lexicalEditor(),
   localization: { locales: cms.locales, defaultLocale: cms.defaultLocale, fallback: true },
   i18n: { supportedLanguages: { en, ar }, fallbackLanguage: 'en' },

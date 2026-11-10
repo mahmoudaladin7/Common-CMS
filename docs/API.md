@@ -1,3 +1,5 @@
+> Phase 1: all content, media, navigation and settings queries are website-scoped. Anonymous calls require a registered request hostname; authenticated calls are limited by website membership. See [multi-website setup](multi-website.md).
+
 # Connect an existing website
 
 The CMS can render its included frontend or serve a completely separate website.
@@ -28,17 +30,17 @@ const page = docs[0] ?? null
 
 Collections:
 
-| Path                         | Content                                 |
-| ---------------------------- | --------------------------------------- |
-| `/api/pages`                 | Page sections and SEO                   |
-| `/api/posts`                 | Articles                                |
-| `/api/media`                 | Public file metadata                    |
-| `/api/services`              | Services, when enabled                  |
-| `/api/projects`              | Projects, when enabled                  |
-| `/api/companies`             | Companies, when enabled                 |
-| `/api/team`                  | Team, when enabled                      |
-| `/api/globals/navigation`    | Main and footer menus                   |
-| `/api/globals/site-settings` | Public branding and contact information |
+| Path                 | Content                                 |
+| -------------------- | --------------------------------------- |
+| `/api/pages`         | Page sections and SEO                   |
+| `/api/posts`         | Articles                                |
+| `/api/media`         | Public file metadata                    |
+| `/api/services`      | Services, when enabled                  |
+| `/api/projects`      | Projects, when enabled                  |
+| `/api/companies`     | Companies, when enabled                 |
+| `/api/team`          | Team, when enabled                      |
+| `/api/navigation`    | Main and footer menus                   |
+| `/api/site-settings` | Public branding and contact information |
 
 Lists return `docs`, `totalDocs`, `totalPages`, `page`, `hasNextPage` and
 `nextPage`. Follow pagination instead of assuming the first page contains

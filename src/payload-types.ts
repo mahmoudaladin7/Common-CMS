@@ -68,6 +68,7 @@ export interface Config {
   blocks: {};
   collections: {
     users: User;
+    websites: Website;
     media: Media;
     pages: Page;
     posts: Post;
@@ -75,6 +76,8 @@ export interface Config {
     projects: Project;
     companies: Company;
     team: Team;
+    'site-settings': SiteSetting;
+    navigation: Navigation;
     'payload-kv': PayloadKv;
     'payload-locked-documents': PayloadLockedDocument;
     'payload-preferences': PayloadPreference;
@@ -83,6 +86,7 @@ export interface Config {
   collectionsJoins: {};
   collectionsSelect: {
     users: UsersSelect<false> | UsersSelect<true>;
+    websites: WebsitesSelect<false> | WebsitesSelect<true>;
     media: MediaSelect<false> | MediaSelect<true>;
     pages: PagesSelect<false> | PagesSelect<true>;
     posts: PostsSelect<false> | PostsSelect<true>;
@@ -90,6 +94,8 @@ export interface Config {
     projects: ProjectsSelect<false> | ProjectsSelect<true>;
     companies: CompaniesSelect<false> | CompaniesSelect<true>;
     team: TeamSelect<false> | TeamSelect<true>;
+    'site-settings': SiteSettingsSelect<false> | SiteSettingsSelect<true>;
+    navigation: NavigationSelect<false> | NavigationSelect<true>;
     'payload-kv': PayloadKvSelect<false> | PayloadKvSelect<true>;
     'payload-locked-documents': PayloadLockedDocumentsSelect<false> | PayloadLockedDocumentsSelect<true>;
     'payload-preferences': PayloadPreferencesSelect<false> | PayloadPreferencesSelect<true>;
@@ -99,14 +105,8 @@ export interface Config {
     defaultIDType: number;
   };
   fallbackLocale: ('false' | 'none' | 'null') | false | null | ('en' | 'ar') | ('en' | 'ar')[];
-  globals: {
-    'site-settings': SiteSetting;
-    navigation: Navigation;
-  };
-  globalsSelect: {
-    'site-settings': SiteSettingsSelect<false> | SiteSettingsSelect<true>;
-    navigation: NavigationSelect<false> | NavigationSelect<true>;
-  };
+  globals: {};
+  globalsSelect: {};
   locale: 'en' | 'ar';
   widgets: {
     collections: CollectionsWidget;
@@ -142,7 +142,17 @@ export interface UserAuthOperations {
 export interface User {
   id: number;
   name: string;
+  /**
+   * Website permissions come from the website memberships below.
+   */
   role?: ('admin' | 'editor' | 'viewer') | null;
+  tenants?:
+    | {
+        tenant: number | Website;
+        role: 'admin' | 'editor' | 'viewer';
+        id?: string | null;
+      }[]
+    | null;
   updatedAt: string;
   createdAt: string;
   email: string;
@@ -164,6 +174,18 @@ export interface User {
   collection: 'users';
 }
 /**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "websites".
+ */
+export interface Website {
+  id: number;
+  name: string;
+  slug: string;
+  domain: string;
+  updatedAt: string;
+  createdAt: string;
+}
+/**
  * Public website assets. Do not upload private documents.
  *
  * This interface was referenced by `Config`'s JSON-Schema
@@ -171,6 +193,7 @@ export interface User {
  */
 export interface Media {
   id: number;
+  tenant?: (number | null) | Website;
   /**
    * Describe the image or document for people using screen readers.
    */
@@ -214,6 +237,7 @@ export interface Media {
  */
 export interface Page {
   id: number;
+  tenant?: (number | null) | Website;
   title: string;
   /**
    * Shared across languages. Use “home” for the homepage.
@@ -293,7 +317,6 @@ export interface Page {
            * For example /about or https://example.com
            */
           href: string;
-          id?: string | null;
         };
         id?: string | null;
         blockName?: string | null;
@@ -327,6 +350,7 @@ export interface Page {
  */
 export interface Post {
   id: number;
+  tenant?: (number | null) | Website;
   title: string;
   /**
    * A stable address shared across languages.
@@ -374,6 +398,7 @@ export interface Post {
  */
 export interface Service {
   id: number;
+  tenant?: (number | null) | Website;
   title: string;
   /**
    * A stable address shared across languages.
@@ -416,6 +441,7 @@ export interface Service {
  */
 export interface Project {
   id: number;
+  tenant?: (number | null) | Website;
   title: string;
   /**
    * A stable address shared across languages.
@@ -467,6 +493,7 @@ export interface Project {
  */
 export interface Company {
   id: number;
+  tenant?: (number | null) | Website;
   title: string;
   /**
    * A stable address shared across languages.
@@ -511,6 +538,7 @@ export interface Company {
  */
 export interface Team {
   id: number;
+  tenant?: (number | null) | Website;
   title: string;
   /**
    * A stable address shared across languages.
@@ -549,6 +577,72 @@ export interface Team {
   _status?: ('draft' | 'published') | null;
 }
 /**
+ * Public website information. Never store secrets or API credentials here.
+ *
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "site-settings".
+ */
+export interface SiteSetting {
+  id: number;
+  tenant?: (number | null) | Website;
+  siteName: string;
+  tagline?: string | null;
+  logo?: (number | null) | Media;
+  email?: string | null;
+  phone?: string | null;
+  address?: string | null;
+  socialLinks?:
+    | {
+        label: string;
+        /**
+         * For example /about or https://example.com
+         */
+        href: string;
+        id?: string | null;
+      }[]
+    | null;
+  defaultDescription?: string | null;
+  defaultImage?: (number | null) | Media;
+  /**
+   * Optional: the separate website consuming this CMS.
+   */
+  externalWebsite?: string | null;
+  updatedAt: string;
+  createdAt: string;
+}
+/**
+ * Menu changes take effect immediately. Page content has a separate draft workflow.
+ *
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "navigation".
+ */
+export interface Navigation {
+  id: number;
+  tenant?: (number | null) | Website;
+  main?:
+    | {
+        label: string;
+        /**
+         * For example /about or https://example.com
+         */
+        href: string;
+        id?: string | null;
+      }[]
+    | null;
+  footer?:
+    | {
+        label: string;
+        /**
+         * For example /about or https://example.com
+         */
+        href: string;
+        id?: string | null;
+      }[]
+    | null;
+  updatedAt: string;
+  createdAt: string;
+}
+/**
  * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "payload-kv".
  */
@@ -577,6 +671,10 @@ export interface PayloadLockedDocument {
         value: number | User;
       } | null)
     | ({
+        relationTo: 'websites';
+        value: number | Website;
+      } | null)
+    | ({
         relationTo: 'media';
         value: number | Media;
       } | null)
@@ -603,6 +701,14 @@ export interface PayloadLockedDocument {
     | ({
         relationTo: 'team';
         value: number | Team;
+      } | null)
+    | ({
+        relationTo: 'site-settings';
+        value: number | SiteSetting;
+      } | null)
+    | ({
+        relationTo: 'navigation';
+        value: number | Navigation;
       } | null);
   globalSlug?: string | null;
   user: {
@@ -653,6 +759,13 @@ export interface PayloadMigration {
 export interface UsersSelect<T extends boolean = true> {
   name?: T;
   role?: T;
+  tenants?:
+    | T
+    | {
+        tenant?: T;
+        role?: T;
+        id?: T;
+      };
   updatedAt?: T;
   createdAt?: T;
   email?: T;
@@ -673,9 +786,21 @@ export interface UsersSelect<T extends boolean = true> {
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "websites_select".
+ */
+export interface WebsitesSelect<T extends boolean = true> {
+  name?: T;
+  slug?: T;
+  domain?: T;
+  updatedAt?: T;
+  createdAt?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "media_select".
  */
 export interface MediaSelect<T extends boolean = true> {
+  tenant?: T;
   alt?: T;
   caption?: T;
   updatedAt?: T;
@@ -719,6 +844,7 @@ export interface MediaSelect<T extends boolean = true> {
  * via the `definition` "pages_select".
  */
 export interface PagesSelect<T extends boolean = true> {
+  tenant?: T;
   title?: T;
   slug?: T;
   layout?:
@@ -785,7 +911,6 @@ export interface PagesSelect<T extends boolean = true> {
                 | {
                     label?: T;
                     href?: T;
-                    id?: T;
                   };
               id?: T;
               blockName?: T;
@@ -817,6 +942,7 @@ export interface PagesSelect<T extends boolean = true> {
  * via the `definition` "posts_select".
  */
 export interface PostsSelect<T extends boolean = true> {
+  tenant?: T;
   title?: T;
   slug?: T;
   excerpt?: T;
@@ -842,6 +968,7 @@ export interface PostsSelect<T extends boolean = true> {
  * via the `definition` "services_select".
  */
 export interface ServicesSelect<T extends boolean = true> {
+  tenant?: T;
   title?: T;
   slug?: T;
   summary?: T;
@@ -865,6 +992,7 @@ export interface ServicesSelect<T extends boolean = true> {
  * via the `definition` "projects_select".
  */
 export interface ProjectsSelect<T extends boolean = true> {
+  tenant?: T;
   title?: T;
   slug?: T;
   summary?: T;
@@ -897,6 +1025,7 @@ export interface ProjectsSelect<T extends boolean = true> {
  * via the `definition` "companies_select".
  */
 export interface CompaniesSelect<T extends boolean = true> {
+  tenant?: T;
   title?: T;
   slug?: T;
   summary?: T;
@@ -922,6 +1051,7 @@ export interface CompaniesSelect<T extends boolean = true> {
  * via the `definition` "team_select".
  */
 export interface TeamSelect<T extends boolean = true> {
+  tenant?: T;
   title?: T;
   slug?: T;
   summary?: T;
@@ -940,6 +1070,54 @@ export interface TeamSelect<T extends boolean = true> {
   updatedAt?: T;
   createdAt?: T;
   _status?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "site-settings_select".
+ */
+export interface SiteSettingsSelect<T extends boolean = true> {
+  tenant?: T;
+  siteName?: T;
+  tagline?: T;
+  logo?: T;
+  email?: T;
+  phone?: T;
+  address?: T;
+  socialLinks?:
+    | T
+    | {
+        label?: T;
+        href?: T;
+        id?: T;
+      };
+  defaultDescription?: T;
+  defaultImage?: T;
+  externalWebsite?: T;
+  updatedAt?: T;
+  createdAt?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "navigation_select".
+ */
+export interface NavigationSelect<T extends boolean = true> {
+  tenant?: T;
+  main?:
+    | T
+    | {
+        label?: T;
+        href?: T;
+        id?: T;
+      };
+  footer?:
+    | T
+    | {
+        label?: T;
+        href?: T;
+        id?: T;
+      };
+  updatedAt?: T;
+  createdAt?: T;
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
@@ -980,118 +1158,6 @@ export interface PayloadMigrationsSelect<T extends boolean = true> {
   batch?: T;
   updatedAt?: T;
   createdAt?: T;
-}
-/**
- * Public website information. Never store secrets or API credentials here.
- *
- * This interface was referenced by `Config`'s JSON-Schema
- * via the `definition` "site-settings".
- */
-export interface SiteSetting {
-  id: number;
-  siteName: string;
-  tagline?: string | null;
-  logo?: (number | null) | Media;
-  email?: string | null;
-  phone?: string | null;
-  address?: string | null;
-  socialLinks?:
-    | {
-        label: string;
-        /**
-         * For example /about or https://example.com
-         */
-        href: string;
-        id?: string | null;
-      }[]
-    | null;
-  defaultDescription?: string | null;
-  defaultImage?: (number | null) | Media;
-  /**
-   * Optional: the separate website consuming this CMS.
-   */
-  externalWebsite?: string | null;
-  updatedAt?: string | null;
-  createdAt?: string | null;
-}
-/**
- * Menu changes take effect immediately. Page content has a separate draft workflow.
- *
- * This interface was referenced by `Config`'s JSON-Schema
- * via the `definition` "navigation".
- */
-export interface Navigation {
-  id: number;
-  main?:
-    | {
-        label: string;
-        /**
-         * For example /about or https://example.com
-         */
-        href: string;
-        id?: string | null;
-      }[]
-    | null;
-  footer?:
-    | {
-        label: string;
-        /**
-         * For example /about or https://example.com
-         */
-        href: string;
-        id?: string | null;
-      }[]
-    | null;
-  updatedAt?: string | null;
-  createdAt?: string | null;
-}
-/**
- * This interface was referenced by `Config`'s JSON-Schema
- * via the `definition` "site-settings_select".
- */
-export interface SiteSettingsSelect<T extends boolean = true> {
-  siteName?: T;
-  tagline?: T;
-  logo?: T;
-  email?: T;
-  phone?: T;
-  address?: T;
-  socialLinks?:
-    | T
-    | {
-        label?: T;
-        href?: T;
-        id?: T;
-      };
-  defaultDescription?: T;
-  defaultImage?: T;
-  externalWebsite?: T;
-  updatedAt?: T;
-  createdAt?: T;
-  globalType?: T;
-}
-/**
- * This interface was referenced by `Config`'s JSON-Schema
- * via the `definition` "navigation_select".
- */
-export interface NavigationSelect<T extends boolean = true> {
-  main?:
-    | T
-    | {
-        label?: T;
-        href?: T;
-        id?: T;
-      };
-  footer?:
-    | T
-    | {
-        label?: T;
-        href?: T;
-        id?: T;
-      };
-  updatedAt?: T;
-  createdAt?: T;
-  globalType?: T;
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema

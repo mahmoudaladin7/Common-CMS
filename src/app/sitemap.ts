@@ -1,11 +1,12 @@
 import type { MetadataRoute } from 'next'
 import { cms } from '@/cms.config'
-import { contentSlugs, contentPath, getCMS } from '@/lib/content'
+import { contentSlugs, contentPath, getCMS, getReadContext } from '@/lib/content'
 
 export const dynamic = 'force-dynamic'
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const payload = await getCMS()
-  const base = process.env.SERVER_URL || 'http://localhost:3000'
+  const context = await getReadContext(cms.defaultLocale)
+  const base = context.websiteURL
   const entries: MetadataRoute.Sitemap = []
   for (const collection of contentSlugs) {
     let page = 1
@@ -13,7 +14,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     while (more) {
       const result = await payload.find({
         collection,
-        overrideAccess: false,
+        ...context,
         user: null,
         draft: false,
         where: { 'seo.noIndex': { not_equals: true } },

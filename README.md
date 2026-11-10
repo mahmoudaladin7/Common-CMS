@@ -1,5 +1,7 @@
 # Common CMS
 
+Common-CMS now supports multiple website workspaces with website-specific roles, isolated content/media, and English/Arabic localization. See the [Phase 1 setup and migration guide](docs/multi-website.md) and the [dashboard guide](docs/dashboard.md).
+
 A reusable, bilingual CMS foundation for business websites. Clone it for a new
 client, choose the content modules, apply the brand, and keep the same editorial
 workflow. Built with **Payload 3, Next.js 16, React 19, TypeScript and SQLite**.
@@ -46,18 +48,18 @@ its own configured secret; this automatic setup runs only before development.
 
 ## What is included
 
-| Feature            | Included behavior                                                                                                     |
-| ------------------ | --------------------------------------------------------------------------------------------------------------------- |
-| Pages              | Reorderable hero, rich text, features, statistics, CTA and content-collection sections                                |
-| Editorial workflow | Drafts, page/article autosave, authenticated previews, publish/unpublish and revision history                         |
-| Media library      | JPEG, PNG, WebP, AVIF and PDF uploads; alt text; image sizes; 10 MB upload limit                                      |
-| Articles           | Rich text, categories, public author name, publication date, pagination and SEO                                       |
-| Business content   | Optional services, projects, companies and team collections                                                           |
-| Languages          | English and Arabic content, localized inputs, RTL website and admin interface translation                             |
-| Permissions        | Administrator, editor and viewer roles, enforced by the server                                                        |
-| Site-wide content  | Navigation, contact details, logo, social links and SEO defaults                                                      |
-| Delivery           | Working Next.js example, REST, GraphQL, metadata, sitemap and robots rules                                            |
-| Repository         | Strict TypeScript, generated content types, integration tests, CI, container example, contribution guide, MIT license |
+| Feature                | Included behavior                                                                                                     |
+| ---------------------- | --------------------------------------------------------------------------------------------------------------------- |
+| Pages                  | Reorderable hero, rich text, features, statistics, CTA and content-collection sections                                |
+| Editorial workflow     | Drafts, page/article autosave, authenticated previews, publish/unpublish and revision history                         |
+| Media library          | JPEG, PNG, WebP, AVIF and PDF uploads; alt text; image sizes; 10 MB upload limit                                      |
+| Articles               | Rich text, categories, public author name, publication date, pagination and SEO                                       |
+| Business content       | Optional services, projects, companies and team collections                                                           |
+| Languages              | English and Arabic content, localized inputs, RTL website and admin interface translation                             |
+| Permissions            | Super Admin plus website-specific admin, editor and viewer roles                                                      |
+| Website-scoped content | Navigation, contact details, logo, social links and SEO defaults                                                      |
+| Delivery               | Working Next.js example, REST, GraphQL, metadata, sitemap and robots rules                                            |
+| Repository             | Strict TypeScript, generated content types, integration tests, CI, container example, contribution guide, MIT license |
 
 Admin interface language and content language are separate. Change the interface
 language in your account preferences; choose the content locale while editing.

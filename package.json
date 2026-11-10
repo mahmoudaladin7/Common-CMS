@@ -24,12 +24,14 @@
     "seed": "payload run scripts/seed.ts",
     "test": "node --import tsx --test tests/*.test.ts",
     "test:integration": "node scripts/integration.mjs",
-    "check": "npm run typecheck && npm test"
+    "check": "npm run typecheck && npm test",
+    "test:migration": "node scripts/integration.mjs --migration"
   },
   "dependencies": {
     "@payloadcms/db-sqlite": "3.91.0",
     "@payloadcms/email-nodemailer": "3.91.0",
     "@payloadcms/next": "3.91.0",
+    "@payloadcms/plugin-multi-tenant": "3.91.0",
     "@payloadcms/richtext-lexical": "3.91.0",
     "@payloadcms/translations": "3.91.0",
     "@payloadcms/ui": "3.91.0",

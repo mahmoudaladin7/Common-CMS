@@ -1,3 +1,5 @@
+> Choose a website using the admin website selector first. Your permissions depend on your role for that website; a Super Admin assigns memberships. Website Admins manage that website’s content/media and settings, while only the Super Admin manages user accounts. See [website roles](multi-website.md).
+
 # Editor guide
 
 ## First visit
@@ -6,11 +8,11 @@ Open `/admin`. On a fresh database, create the first administrator. Administrato
 can then create editors and viewers under **Users**. Each person should have a
 separate account.
 
-| Role          | Can do                                                                              |
-| ------------- | ----------------------------------------------------------------------------------- |
-| Administrator | Manage content, delete entries, manage users and roles, update site settings        |
-| Editor        | Create, edit and publish content; upload media; update navigation; edit own account |
-| Viewer        | Read published content and drafts; preview; edit own account                        |
+| Role        | Can do                                                                              |
+| ----------- | ----------------------------------------------------------------------------------- |
+| Super Admin | Manage content, delete entries, manage users and roles, update site settings        |
+| Editor      | Create, edit and publish content; upload media; update navigation; edit own account |
+| Viewer      | Read published content and drafts; preview; edit own account                        |
 
 Only administrators can delete content or media. Editors and viewers cannot
 change their role or inspect other users' accounts.

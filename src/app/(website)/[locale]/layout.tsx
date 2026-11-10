@@ -1,7 +1,7 @@
 import Link from 'next/link'
 import { notFound } from 'next/navigation'
 import { isLocale } from '@/cms.config'
-import { getCMS, getReadContext } from '@/lib/content'
+import { getWebsiteSettings, getReadContext } from '@/lib/content'
 import { localizedHref } from '@/lib/validation'
 import { BrandIcon } from '@/components/admin/Brand'
 import { MediaImage } from '@/components/website/MediaImage'
@@ -19,10 +19,8 @@ export default async function Layout({
 }) {
   const { locale } = await params
   if (!isLocale(locale)) notFound()
-  const payload = await getCMS()
-  const [settings, navigation, context] = await Promise.all([
-    payload.findGlobal({ slug: 'site-settings', locale, overrideAccess: false }),
-    payload.findGlobal({ slug: 'navigation', locale, overrideAccess: false }),
+  const [{ settings, navigation }, context] = await Promise.all([
+    getWebsiteSettings(locale),
     getReadContext(locale),
   ])
   const ar = locale === 'ar'
@@ -40,11 +38,11 @@ export default async function Layout({
         ) : null}
         <header className="site-header">
           <Link className="site-brand" href={`/${locale}`}>
-            {settings.logo ? <MediaImage media={settings.logo} /> : <BrandIcon />}
-            <span>{settings.siteName || 'Common'}</span>
+            {settings?.logo ? <MediaImage media={settings?.logo} /> : <BrandIcon />}
+            <span>{settings?.siteName || 'Common'}</span>
           </Link>
           <nav aria-label={ar ? 'القائمة الرئيسية' : 'Main menu'}>
-            {navigation.main?.map((link, i) => (
+            {navigation?.main?.map((link, i) => (
               <Link key={link.id || i} href={localizedHref(link.href, locale)}>
                 {link.label}
               </Link>
@@ -55,19 +53,19 @@ export default async function Layout({
         <main id="main">{children}</main>
         <footer className="site-footer">
           <div>
-            <strong>{settings.siteName || 'Common'}</strong>
-            <p>{settings.tagline}</p>
-            {settings.email ? <a href={`mailto:${settings.email}`}>{settings.email}</a> : null}
-            {settings.phone ? <p dir="ltr">{settings.phone}</p> : null}
-            {settings.address ? <p>{settings.address}</p> : null}
+            <strong>{settings?.siteName || 'Common'}</strong>
+            <p>{settings?.tagline}</p>
+            {settings?.email ? <a href={`mailto:${settings?.email}`}>{settings?.email}</a> : null}
+            {settings?.phone ? <p dir="ltr">{settings?.phone}</p> : null}
+            {settings?.address ? <p>{settings?.address}</p> : null}
           </div>
           <div className="footer-links">
-            {navigation.footer?.map((link, i) => (
+            {navigation?.footer?.map((link, i) => (
               <Link key={link.id || i} href={localizedHref(link.href, locale)}>
                 {link.label}
               </Link>
             ))}
-            {settings.socialLinks?.map((link, i) => (
+            {settings?.socialLinks?.map((link, i) => (
               <a key={link.id || i} href={localizedHref(link.href, locale)}>
                 {link.label}
               </a>
@@ -75,7 +73,7 @@ export default async function Layout({
           </div>
           <div className="footer-bottom">
             <span>
-              © {new Date().getFullYear()} {settings.siteName}
+              © {new Date().getFullYear()} {settings?.siteName}
             </span>
             <Link href="/admin">{ar ? 'إدارة المحتوى' : 'Content workspace'} ↗</Link>
           </div>
