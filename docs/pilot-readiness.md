@@ -18,7 +18,9 @@ Website Admins manage their website’s content and settings; only Super Admins 
 
 Development and isolated tests still use SQLite. No hosted database, production database credentials or live Talaline changes were created during this milestone.
 
-Before provisioning, select the CMS hosting target and database provider. The planned production move is PostgreSQL. That stage includes the Payload PostgreSQL adapter, PostgreSQL-specific migrations, data transfer if required, and verification against the actual PostgreSQL instance. The committed SQLite migrations cannot be run directly on PostgreSQL.
+The intended deployment uses the existing Vercel account for Common-CMS, Supabase PostgreSQL for records, and Supabase Storage for uploaded files, under one CMS dashboard. No additional hosting provider is required by this plan. The Vercel project, CMS subdomain and Supabase project/plan still need confirmation; none has been provisioned or connected here. WBC remains on its existing Strapi installation while the pilot is evaluated.
+
+The production move includes the Payload PostgreSQL adapter, PostgreSQL-specific migrations, database connection pooling suitable for Vercel, data transfer if required, and verification against the actual PostgreSQL instance. The committed SQLite migrations cannot be run directly on PostgreSQL. Media requires a storage adapter and replacement of the current filesystem-based public media reads; adding credentials alone is not sufficient. Verify tenant ownership, access policy and upload-size handling after adapting storage.
 
 Talaline’s source has been inspected. It uses Next.js 16 with coded English/Arabic pages and an existing News & Insights placeholder. The pilot preserves those coded pages and adds request-time listing/article templates backed by the CMS’s published, website-scoped public feed. Talaline configuration requires only the CMS origin and website identifier; no database credentials or administrator tokens are used there. Unconfigured deployments retain their current coming-soon page.
 
