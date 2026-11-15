@@ -284,6 +284,16 @@ export async function Overview({ payload, user, i18n, locale }: AdminViewServerP
                 )}
               </section>
               <aside className="common-create-card">
+                {writable && (
+                  <Link
+                    className="common-button common-button--light"
+                    href="/admin/collections/posts/create"
+                  >
+                    <BlogIcon />
+                    {t('Write a blog post', 'كتابة مقالة')}
+                  </Link>
+                )}
+
                 <span className="common-create-icon">
                   <PlusIcon />
                 </span>

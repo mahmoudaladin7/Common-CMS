@@ -9,6 +9,7 @@ import {
 type Actor =
   | {
       role?: string | null
+      disabled?: boolean | null
       tenants?: { tenant: number | { id: number }; role?: string | null }[] | null
     }
   | null
@@ -17,9 +18,9 @@ export const relationID = (value: unknown): number | undefined => {
   const id = typeof value === 'object' && value ? (value as { id?: unknown }).id : value
   return Number.isSafeInteger(Number(id)) && Number(id) > 0 ? Number(id) : undefined
 }
-export const isSuperAdmin = (user: Actor) => user?.role === 'admin'
+export const isSuperAdmin = (user: Actor) => user?.role === 'admin' && !user.disabled
 export const websiteIDs = (user: Actor, roles = ['admin', 'editor', 'viewer']) =>
-  (user?.tenants || [])
+  (user?.disabled ? [] : user?.tenants || [])
     .filter((row) => roles.includes(row.role || 'viewer'))
     .map((row) => relationID(row.tenant)!)
     .filter(Boolean)
@@ -44,6 +45,7 @@ export async function publicWebsite(req: PayloadRequest): Promise<number | undef
 export const tenantRead =
   (published = true): Access =>
   async ({ req }) => {
+    if (req.user?.disabled) return false
     const scope = relationID(req.context.websiteID)
     if (req.user) {
       if (isSuperAdmin(req.user)) return scope ? { tenant: { equals: scope } } : true

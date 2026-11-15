@@ -416,13 +416,29 @@ try {
     }),
   )
   check(true, 'The same user can administer A while remaining read-only on B')
-  const settingsA = await payload.create({
+  const originalSettingsA = await payload.find({
     collection: 'site-settings',
+    where: { tenant: { equals: tenant } },
+  })
+  const settingsA = await payload.update({
+    collection: 'site-settings',
+    id: originalSettingsA.docs[0].id,
     user: adminA,
     overrideAccess: false,
     data: { tenant, siteName: 'A settings' },
   })
-  await payload.create({ collection: 'site-settings', data: { tenant: b, siteName: 'B settings' } })
+  const onboardingNavigation = await payload.find({
+    collection: 'navigation',
+    where: { tenant: { equals: b } },
+  })
+  const onboardingSettings = await payload.find({
+    collection: 'site-settings',
+    where: { tenant: { equals: b } },
+  })
+  check(
+    onboardingNavigation.totalDocs === 1 && onboardingSettings.totalDocs === 1,
+    'New websites get their own settings and navigation automatically',
+  )
   await assert.rejects(() =>
     payload.update({
       collection: 'site-settings',
@@ -605,6 +621,192 @@ try {
       },
     })
   }
+  const story = {
+    root: {
+      type: 'root',
+      version: 1,
+      format: '' as const,
+      indent: 0,
+      direction: 'ltr' as const,
+      children: [
+        {
+          type: 'paragraph',
+          version: 1,
+          children: [
+            {
+              type: 'text',
+              version: 1,
+              text: 'A real blog story',
+              format: 0,
+              detail: 0,
+              mode: 'normal',
+              style: '',
+            },
+          ],
+        },
+      ],
+    },
+  }
+  const blog = await payload.create({
+    collection: 'posts',
+    user: editor,
+    overrideAccess: false,
+    draft: true,
+    data: {
+      tenant,
+      title: 'First blog post',
+      excerpt: 'An introduction',
+      content: story,
+      _status: 'draft',
+    },
+  })
+  check(
+    blog.authorName === editor.name && blog.slug === 'first-blog-post',
+    'Blog posts start with the writer name and a generated URL',
+  )
+  const privateBlog = await payload.find({
+    collection: 'posts',
+    overrideAccess: false,
+    user: null,
+    context: publicContext,
+    where: { id: { equals: blog.id } },
+    draft: true,
+  })
+  check(privateBlog.totalDocs === 0, 'Unpublished blog posts stay private')
+  const publishedBlog = await payload.update({
+    collection: 'posts',
+    id: blog.id,
+    user: editor,
+    overrideAccess: false,
+    data: { _status: 'published' },
+  })
+  check(Boolean(publishedBlog.publishedAt), 'Publishing a blog sets its publication date')
+  const editedBlog = await payload.update({
+    collection: 'posts',
+    id: blog.id,
+    user: editor,
+    overrideAccess: false,
+    data: { title: 'Updated blog', _status: 'published' },
+  })
+  check(
+    editedBlog.publishedAt === publishedBlog.publishedAt && editedBlog.slug === blog.slug,
+    'Editing a published blog preserves its original publication date and URL',
+  )
+  await payload.update({
+    collection: 'posts',
+    id: blog.id,
+    user: editor,
+    locale: 'ar',
+    overrideAccess: false,
+    data: {
+      title: 'مقالة تجريبية',
+      excerpt: 'مقدمة المقالة',
+      content: story,
+      _status: 'published',
+    },
+  })
+  const arabicBlog = await payload.findByID({
+    collection: 'posts',
+    id: blog.id,
+    locale: 'ar',
+    overrideAccess: false,
+    context: publicContext,
+  })
+  check(arabicBlog.title === 'مقالة تجريبية', 'Blog translations publish independently')
+  await assert.rejects(() =>
+    payload.update({
+      collection: 'posts',
+      id: blog.id,
+      user: viewer,
+      overrideAccess: false,
+      data: { _status: 'draft' },
+    }),
+  )
+  const foreignBlog = await payload.create({
+    collection: 'posts',
+    data: {
+      tenant: b,
+      title: 'B blog',
+      slug: 'b-blog',
+      excerpt: 'B intro',
+      content: story,
+      _status: 'draft',
+    },
+  })
+  await assert.rejects(() =>
+    payload.findByID({
+      collection: 'posts',
+      id: foreignBlog.id,
+      user: editor,
+      overrideAccess: false,
+      draft: true,
+    }),
+  )
+  check(true, 'Viewers cannot publish and editors cannot access another website blog')
+  await assert.rejects(() =>
+    payload.update({
+      collection: 'users',
+      id: admin.id,
+      user: admin,
+      overrideAccess: false,
+      data: { disabled: true },
+    }),
+  )
+  check(true, 'The last active Super Admin cannot be suspended')
+  const disposable = await payload.create({
+    collection: 'users',
+    data: {
+      name: 'Temporary writer',
+      email: 'temporary@example.test',
+      password,
+      role: 'viewer',
+      tenants: [{ tenant, role: 'editor' }],
+    },
+  })
+  const disposableSession = await payload.login({
+    collection: 'users',
+    data: { email: disposable.email, password },
+  })
+  await payload.update({
+    collection: 'users',
+    id: disposable.id,
+    user: admin,
+    overrideAccess: false,
+    data: { disabled: true },
+  })
+  const suspended = await payload.findByID({ collection: 'users', id: disposable.id })
+  check(
+    suspended.disabled && !suspended.sessions?.length,
+    'Suspending an account removes all active sessions',
+  )
+  const expired = await payload.auth({
+    headers: new Headers({ Authorization: `JWT ${disposableSession.token}` }),
+  })
+  check(!expired.user, 'Existing tokens stop working after account suspension')
+  await assert.rejects(() =>
+    payload.login({ collection: 'users', data: { email: disposable.email, password } }),
+  )
+  await assert.rejects(() =>
+    payload.update({
+      collection: 'users',
+      id: disposable.id,
+      user: suspended,
+      overrideAccess: false,
+      data: { disabled: false },
+    }),
+  )
+  await payload.update({
+    collection: 'users',
+    id: disposable.id,
+    user: admin,
+    overrideAccess: false,
+    data: { disabled: false },
+  })
+  const renewed = await payload.login({
+    collection: 'users',
+    data: { email: disposable.email, password },
+  })
+  check(Boolean(renewed.token), 'Only a Super Admin can restore sign-in to a suspended account')
   // Exercise the actual REST, GraphQL, upload and preview handlers over HTTP.
   const port = await new Promise<number>((resolve) => {
     const socket = createServer()
@@ -613,10 +815,11 @@ try {
       socket.close(() => resolve(address.port))
     })
   })
+  const base = `http://127.0.0.1:${port}`
   server = spawn(
     process.execPath,
     ['node_modules/next/dist/bin/next', 'dev', '--hostname', '127.0.0.1', '--port', String(port)],
-    { env: process.env, stdio: ['ignore', 'pipe', 'pipe'] },
+    { env: { ...process.env, SERVER_URL: base }, stdio: ['ignore', 'pipe', 'pipe'] },
   )
   let output = ''
   server.stdout?.on('data', (chunk) => {
@@ -625,7 +828,6 @@ try {
   server.stderr?.on('data', (chunk) => {
     output = (output + chunk).slice(-6000)
   })
-  const base = `http://127.0.0.1:${port}`
   let ready = false
   for (let attempt = 0; attempt < 120; attempt++) {
     try {
@@ -646,6 +848,32 @@ try {
   })
   const session = (await login.json()) as { token: string }
   assert.ok(session.token, 'REST login must issue a session token')
+  const browserDraftSave = await fetch(`${base}/api/posts/${blog.id}?draft=true`, {
+    method: 'PATCH',
+    headers: {
+      Cookie: `payload-token=${session.token}`,
+      Origin: base,
+      'content-type': 'application/json',
+    },
+    body: JSON.stringify({ title: 'Browser-saved draft', _status: 'draft' }),
+  })
+  assert.equal(browserDraftSave.status, 200)
+  const browserDraft = await payload.findByID({ collection: 'posts', id: blog.id, draft: true })
+  assert.equal(browserDraft.title, 'Browser-saved draft')
+  const crossSiteSave = await fetch(`${base}/api/posts/${blog.id}?draft=true`, {
+    method: 'PATCH',
+    headers: {
+      Cookie: `payload-token=${session.token}`,
+      Origin: 'https://untrusted.example',
+      'content-type': 'application/json',
+    },
+    body: JSON.stringify({ title: 'Cross-site attack' }),
+  })
+  assert.ok([401, 403].includes(crossSiteSave.status))
+  check(
+    true,
+    'Browser cookie-authenticated draft saves work on the configured origin and reject foreign origins',
+  )
   const authHeaders = { Authorization: `JWT ${session.token}`, 'content-type': 'application/json' }
   const rest = await fetch(`${base}/api/pages?draft=true&where[tenant][equals]=${b}`, {
     headers: authHeaders,
@@ -758,6 +986,25 @@ try {
       `${actor.name} dashboard ignores foreign website cookies and shows only authorized actions`,
     )
   }
+  const blogPage = await fetch(`http://localhost:${port}/en/insights/${blog.slug}`)
+  assert.equal(blogPage.status, 200)
+  assert.ok((await blogPage.text()).includes('Updated blog'))
+  const translatedBlogPage = await fetch(`http://localhost:${port}/ar/insights/${blog.slug}`)
+  assert.equal(translatedBlogPage.status, 200)
+  assert.ok((await translatedBlogPage.text()).includes('مقالة تجريبية'))
+  await payload.update({
+    collection: 'posts',
+    id: blog.id,
+    user: editor,
+    overrideAccess: false,
+    data: { _status: 'draft' },
+  })
+  const removedBlog = await fetch(`http://localhost:${port}/en/insights/${blog.slug}`)
+  assert.equal(removedBlog.status, 404)
+  check(
+    true,
+    'Published blogs render in English/Arabic without deployment and disappear when unpublished',
+  )
   console.log(`\n${assertions} integration assertions passed.`)
 } finally {
   if (server) {

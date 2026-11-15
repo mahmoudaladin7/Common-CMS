@@ -5,6 +5,7 @@ import { randomBytes } from 'node:crypto'
 import { spawnSync } from 'node:child_process'
 
 // Tests get a new database and media folder. They never touch the developer's data.
+const talaline = process.argv.includes('--talaline')
 const migration = process.argv.includes('--migration')
 const directory = mkdtempSync(path.join(tmpdir(), 'common-cms-test-'))
 try {
@@ -13,7 +14,11 @@ try {
     [
       'node_modules/payload/bin.js',
       'run',
-      migration ? 'tests/migration.ts' : 'tests/integration.ts',
+      migration
+        ? 'tests/migration.ts'
+        : talaline
+          ? 'tests/talaline-integration.ts'
+          : 'tests/integration.ts',
     ],
     {
       stdio: 'inherit',

@@ -25,7 +25,8 @@
     "test": "node --import tsx --test tests/*.test.ts",
     "test:integration": "node scripts/integration.mjs",
     "check": "npm run typecheck && npm test",
-    "test:migration": "node scripts/integration.mjs --migration"
+    "test:migration": "node scripts/integration.mjs --migration",
+    "test:talaline": "node scripts/integration.mjs --talaline"
   },
   "dependencies": {
     "@payloadcms/db-sqlite": "3.91.0",

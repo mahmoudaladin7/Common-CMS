@@ -1,6 +1,6 @@
 # Common CMS
 
-Common-CMS now supports multiple website workspaces with website-specific roles, isolated content/media, and English/Arabic localization. See the [Phase 1 setup and migration guide](docs/multi-website.md) and the [dashboard guide](docs/dashboard.md).
+Common-CMS now supports multiple website workspaces with website-specific roles, isolated content/media, and English/Arabic localization. See the [Phase 1 setup and migration guide](docs/multi-website.md) and the [dashboard guide](docs/dashboard.md). The [pilot readiness notes](docs/pilot-readiness.md) describe the next database and Talaline connection stage.
 
 A reusable, bilingual CMS foundation for business websites. Clone it for a new
 client, choose the content modules, apply the brand, and keep the same editorial

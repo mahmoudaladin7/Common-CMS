@@ -136,16 +136,16 @@ export interface UserAuthOperations {
   };
 }
 /**
+ * Create an account, assign websites and choose a role for each. Suspend access when someone leaves.
+ *
  * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "users".
  */
 export interface User {
   id: number;
-  name: string;
   /**
-   * Website permissions come from the website memberships below.
+   * Assign websites and a role for each. Editors can write and publish; viewers can only review. Only Super Admins can change these assignments.
    */
-  role?: ('admin' | 'editor' | 'viewer') | null;
   tenants?:
     | {
         tenant: number | Website;
@@ -153,6 +153,15 @@ export interface User {
         id?: string | null;
       }[]
     | null;
+  name: string;
+  /**
+   * Stops new sign-ins and ends existing sessions. Clear to allow signing in again.
+   */
+  disabled?: boolean | null;
+  /**
+   * Website permissions come from the website memberships below.
+   */
+  role?: ('admin' | 'editor' | 'viewer') | null;
   updatedAt: string;
   createdAt: string;
   email: string;
@@ -174,12 +183,17 @@ export interface User {
   collection: 'users';
 }
 /**
+ * Add a workspace for an existing website. Domain routing and deployment are connected separately.
+ *
  * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "websites".
  */
 export interface Website {
   id: number;
   name: string;
+  /**
+   * A short internal identifier, for example company-a.
+   */
   slug: string;
   domain: string;
   updatedAt: string;
@@ -345,25 +359,27 @@ export interface Page {
   _status?: ('draft' | 'published') | null;
 }
 /**
+ * Changes save automatically as private drafts. Preview the post on your website, then publish when ready.
+ *
  * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "posts".
  */
 export interface Post {
   id: number;
   tenant?: (number | null) | Website;
-  title: string;
   /**
-   * A stable address shared across languages.
+   * Generated from the title when first saved. Keep it unchanged after sharing the post.
    */
   slug: string;
-  excerpt: string;
-  image?: (number | null) | Media;
-  category?: string | null;
+  title: string;
   /**
-   * A public byline, separate from private CMS user accounts.
+   * A short summary shown on the blog listing.
    */
-  authorName?: string | null;
-  publishedAt?: string | null;
+  excerpt: string;
+  /**
+   * Choose or upload an image from this website’s media library.
+   */
+  image?: (number | null) | Media;
   content: {
     root: {
       type: string;
@@ -379,6 +395,15 @@ export interface Post {
     };
     [k: string]: unknown;
   };
+  category?: string | null;
+  /**
+   * Shown publicly. This does not expose the writer’s private account.
+   */
+  authorName?: string | null;
+  /**
+   * Set automatically on first publication. This field does not schedule publication.
+   */
+  publishedAt?: string | null;
   seo?: {
     /**
      * Optional title shown in search results.
@@ -757,8 +782,6 @@ export interface PayloadMigration {
  * via the `definition` "users_select".
  */
 export interface UsersSelect<T extends boolean = true> {
-  name?: T;
-  role?: T;
   tenants?:
     | T
     | {
@@ -766,6 +789,9 @@ export interface UsersSelect<T extends boolean = true> {
         role?: T;
         id?: T;
       };
+  name?: T;
+  disabled?: T;
+  role?: T;
   updatedAt?: T;
   createdAt?: T;
   email?: T;
@@ -943,14 +969,14 @@ export interface PagesSelect<T extends boolean = true> {
  */
 export interface PostsSelect<T extends boolean = true> {
   tenant?: T;
-  title?: T;
   slug?: T;
+  title?: T;
   excerpt?: T;
   image?: T;
+  content?: T;
   category?: T;
   authorName?: T;
   publishedAt?: T;
-  content?: T;
   seo?:
     | T
     | {

@@ -1,9 +1,14 @@
-import type { Field } from 'payload'
+import type { Field, TextField } from 'payload'
 import { slugify, validateHref, validateSlug } from '@/lib/validation'
 
-export const titleField: Field = { name: 'title', type: 'text', localized: true, required: true }
+export const titleField: TextField = {
+  name: 'title',
+  type: 'text',
+  localized: true,
+  required: true,
+}
 
-export const slugField = (page = false): Field => ({
+export const slugField = (page = false): TextField => ({
   name: 'slug',
   type: 'text',
   required: true,

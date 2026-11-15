@@ -8,6 +8,7 @@ import { ar } from '@payloadcms/translations/languages/ar'
 import { buildConfig } from 'payload'
 import sharp from 'sharp'
 import { multiTenantPlugin } from '@payloadcms/plugin-multi-tenant'
+import { publicPostsEndpoint, publicMediaEndpoint } from './endpoints/public-content'
 import { Websites } from './collections/Websites'
 import { enforceWebsite, isSuperAdmin } from './access/tenancy'
 import { cms } from './cms.config'
@@ -23,6 +24,8 @@ const secret = process.env.PAYLOAD_SECRET
 if (!secret || secret.length < 32)
   throw new Error('PAYLOAD_SECRET must contain at least 32 characters. Run npm run setup.')
 const serverURL = process.env.SERVER_URL || 'http://localhost:3000'
+const localOrigins =
+  process.env.NODE_ENV !== 'production' ? ['http://localhost:3000', 'http://127.0.0.1:3000'] : []
 const extraOrigins = (process.env.CORS_ORIGINS || '')
   .split(',')
   .map((value) => value.trim())
@@ -31,12 +34,14 @@ const extraOrigins = (process.env.CORS_ORIGINS || '')
 export default buildConfig({
   secret,
   serverURL,
+  endpoints: [publicPostsEndpoint, publicMediaEndpoint],
   admin: {
     user: Users.slug,
     theme: 'light',
     meta: { titleSuffix: ` · ${cms.name} CMS` },
     importMap: { baseDir: dirname },
     components: {
+      Nav: '/components/admin/WorkspaceNav#WorkspaceNav',
       beforeNav: ['/components/admin/Brand#SidebarBrand'],
       views: { dashboard: { Component: '/components/admin/Overview#Overview' } },
       beforeLogin: ['/components/admin/Welcome#Welcome'],
@@ -84,22 +89,7 @@ export default buildConfig({
       cleanupAfterTenantDelete: false,
       useTenantsCollectionAccess: false,
       useUsersTenantFilter: false,
-      tenantsArrayField: {
-        rowFields: [
-          {
-            name: 'role',
-            type: 'select',
-            required: true,
-            saveToJWT: true,
-            defaultValue: 'viewer',
-            options: [
-              { label: 'Website Admin', value: 'admin' },
-              { label: 'Editor', value: 'editor' },
-              { label: 'Viewer', value: 'viewer' },
-            ],
-          },
-        ],
-      },
+      tenantsArrayField: { includeDefaultField: false },
       collections: Object.fromEntries(
         [
           'media',
@@ -138,8 +128,8 @@ export default buildConfig({
   sharp,
   // Media is public by design. Allow only formats configured in Media.ts.
   upload: { limits: { fileSize: 10 * 1024 * 1024 }, abortOnLimit: true },
-  cors: [serverURL, ...extraOrigins],
-  csrf: [serverURL],
+  cors: [serverURL, ...localOrigins, ...extraOrigins],
+  csrf: [serverURL, ...localOrigins],
   ...(process.env.SMTP_HOST
     ? {
         email: nodemailerAdapter({

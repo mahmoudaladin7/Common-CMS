@@ -1,7 +1,7 @@
 /**
  * Start here when adapting the template to a new website.
  * Keep client-specific content in the database and reusable behavior in code.
- * One clone = one website, database, media directory, and set of CMS users.
+ * One central application manages multiple website-owned content workspaces.
  */
 export const cms = {
   name: 'Common',

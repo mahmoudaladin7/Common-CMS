@@ -10,7 +10,7 @@ The dashboard at `/admin` is now a custom Payload view, built around the daily t
 
 The visual system uses platform fonts, soft neutral surfaces, subtle borders, blue actions and restrained press/hover feedback. Website card artwork is a decorative workspace illustration, not a live screenshot of the public website. Counts and recent documents come from the database.
 
-The existing Payload editors, authentication, role assignments and tenant enforcement remain in place. No schema migration is needed for the dashboard itself; apply the Phase 1 migration if upgrading from the original single-website version.
+The existing Payload editors, authentication, role assignments and tenant enforcement remain in place. The account suspension feature adds a SQLite migration; the dashboard layout itself does not change the schema. Apply the Phase 1 migration too if upgrading from the original single-website version.
 
 For a fresh local checkout:
 
@@ -24,3 +24,5 @@ npm run dev
 Open `/admin` locally and create your first Super Admin. See [multi-website setup](multi-website.md) for production migration and domain configuration.
 
 Verification includes a production build, type checking, unit tests, the tenant-isolation integration suite and browser checks for website switching, content-editor scope, search/empty states, Arabic layout and 375px/1440px responsive layouts. The integration suite also checks that members cannot use a foreign website cookie to expose another website or unlock dashboard creation actions.
+
+The [blog writing guide](blog-editor-guide.md) explains the employee workflow. See [pilot readiness](pilot-readiness.md) for the next database and Talaline connection steps.

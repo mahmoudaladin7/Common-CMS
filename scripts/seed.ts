@@ -300,7 +300,7 @@ try {
         },
       })
     }
-    if (!settings.tagline && settings.siteName === 'Common') {
+    if (!settings.tagline && (settings.siteName === 'Common' || settings.siteName === name)) {
       await payload.update({
         collection: 'site-settings',
         id: settings.id,

@@ -3,6 +3,7 @@ import { getPayload, createLocalReq } from 'payload'
 import { sql } from '@payloadcms/db-sqlite'
 import config from '../src/payload.config'
 import { up as initial } from '../src/migrations/20261020_064300_initial'
+import { up as accountAccess } from '../src/migrations/20261115_064104'
 import { up as upgrade } from '../src/migrations/20261110_081344'
 
 if (process.env.CMS_INTEGRATION_TEST !== 'true')
@@ -32,6 +33,7 @@ try {
     sql`INSERT INTO navigation_main_locales (_parent_id, _locale, label) VALUES ('old-menu', 'en', 'About'), ('old-menu', 'ar', 'من نحن');`,
   )
   await upgrade(args)
+  await accountAccess(args)
   const page = await payload.findByID({ collection: 'pages', id: 1, locale: 'ar', depth: 0 })
   assert.equal(page.title, 'الرئيسية القديمة')
   assert.equal(page.tenant, 1)
@@ -47,6 +49,7 @@ try {
   const nav = await payload.findByID({ collection: 'navigation', id: 1, locale: 'ar', depth: 0 })
   assert.equal(nav.main?.[0].label, 'من نحن')
   const editor = await payload.findByID({ collection: 'users', id: 2, depth: 0 })
+  assert.equal(editor.disabled, false)
   assert.equal(editor.tenants?.[0].tenant, 1)
   assert.equal(editor.tenants?.[0].role, 'editor')
   const sites = await payload.find({ collection: 'websites' })

@@ -102,3 +102,19 @@ TypeScript consumers or generate equivalent client types from your API schema.
 Treat API text as text, not raw HTML. Validate links before rendering. Preserve
 image alternative text and dimensions. Existing frontends with caches should
 define their own revalidation policy; the bundled frontend uses fresh reads.
+
+## Published feed for a separate frontend
+
+Use `/api/public/{website-identifier}/posts?locale=en&page=1&limit=12` on the central CMS origin. Add `slug=article-address` to retrieve one published article. `limit` is bounded at 100; locales are `en` and `ar`. Unknown websites return 404 and invalid queries return 400. Draft parameters, arbitrary filters and caller admin sessions cannot expand this public feed.
+
+The response contains `docs`, `totalDocs`, `page`, `totalPages`, `hasNextPage` and `hasPrevPage`. Article fields are explicitly exported rather than exposing the internal Payload document. Rich-text content is structured JSON; frontends should render supported nodes without injecting arbitrary HTML. The public adapter currently exports ordinary URL links, not internal document relationships.
+
+Media URLs use `/api/public/{website-identifier}/media/{filename}`. These reads verify website ownership before opening a runtime upload file. Image exports prefer the generated large variant. Files remain public website assets, not private document storage. This filesystem delivery endpoint assumes the existing persistent local media volume; an object-storage adapter will need matching delivery integration during infrastructure setup.
+
+Responses for articles use `Cache-Control: no-store`; media may be cached for five minutes. This feed never returns drafts and is not an authenticated preview API. The Talaline pilot reads it server-side, requiring no administrator token in that website.
+
+To run the isolated two-application test:
+
+```sh
+TALALINE_DIR=/absolute/path/to/talaline npm run test:talaline
+```

@@ -167,3 +167,11 @@ export function WebsiteCards({
     </>
   )
 }
+
+export function WorkspaceSelection({ id }: { id?: number }) {
+  const { setTenant, selectedTenantID } = useTenantSelection()
+  useEffect(() => {
+    if (id && selectedTenantID === undefined) setTenant({ id, refresh: true })
+  }, [id, selectedTenantID, setTenant])
+  return null
+}
